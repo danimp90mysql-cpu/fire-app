@@ -1,0 +1,19 @@
+{
+  "name": "FIRE — Planificación Financiera",
+  "short_name": "FIRE",
+  "description": "Financial Independence, Retire Early — Planificación personal",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080d1a",
+  "theme_color": "#0a0f1e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23080d1a'/><text y='130' x='96' text-anchor='middle' font-size='110'>🔥</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"]
+}

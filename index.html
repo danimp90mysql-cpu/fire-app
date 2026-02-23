@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIRE">
+<title>FIRE — Planificación Financiera</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #080d1a;
+  --bg2:       #0d1425;
+  --bg3:       #111c33;
+  --surface:   #15203a;
+  --surface2:  #1a2840;
+  --border:    rgba(255,255,255,0.07);
+  --gold:      #c9a84c;
+  --gold2:     #e8c96a;
+  --gold-dim:  rgba(201,168,76,0.15);
+  --blue:      #3b82f6;
+  --green:     #22c55e;
+  --green-dim: rgba(34,197,94,0.12);
+  --red:       #ef4444;
+  --red-dim:   rgba(239,68,68,0.12);
+  --amber:     #f59e0b;
+  --text:      #e8eaf0;
+  --text2:     #8b95b0;
+  --text3:     #4a5568;
+  --radius:    14px;
+  --radius-sm: 8px;
+  --nav-h:     64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ─── APP SHELL ────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ─── HEADER ───────────────────────────────────────────────────── */
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 52px 20px 16px;
+  background: linear-gradient(180deg, var(--bg2) 0%, transparent 100%);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+#header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: -0.3px;
+}
+#header-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+#header-badge {
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ─── PAGES ────────────────────────────────────────────────────── */
+#pages {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 0 16px calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.page::-webkit-scrollbar { display: none; }
+.page.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+/* ─── BOTTOM NAV ───────────────────────────────────────────────── */
+#nav {
+  display: flex;
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 8px 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn.active { color: var(--gold); }
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn span {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.nav-indicator {
+  position: absolute;
+  top: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1), width 0.3s ease;
+}
+
+/* ─── CARDS ────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+.card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+.card-accent { border-left: 2px solid var(--gold); }
+
+/* ─── KPI GRID ─────────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+}
+.kpi-unit {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+.kpi-gold .kpi-value { color: var(--gold); }
+.kpi-green .kpi-value { color: var(--green); }
+.kpi-blue .kpi-value { color: var(--blue); }
+.kpi-accent-line {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+}
+.kpi-gold .kpi-accent-line { background: var(--gold); }
+.kpi-green .kpi-accent-line { background: var(--green); }
+.kpi-blue .kpi-accent-line { background: var(--blue); }
+
+/* ─── PROGRESS BAR ─────────────────────────────────────────────── */
+.progress-wrap { margin-bottom: 6px; }
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.progress-pct {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--gold);
+}
+.progress-track {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold2) 100%);
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 8px rgba(201,168,76,0.4);
+}
+.progress-amounts {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.progress-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* ─── SECTION TITLE ────────────────────────────────────────────── */
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin: 20px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── ALERT BADGES ─────────────────────────────────────────────── */
+.alert-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+.alert-icon { font-size: 16px; flex-shrink: 0; }
+.alert-text { font-size: 13px; color: var(--text2); }
+.alert-text strong { color: var(--text); font-weight: 500; }
+
+/* ─── INPUTS ───────────────────────────────────────────────────── */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.input-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.input-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-style: italic;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.input-row:focus-within {
+  border-color: rgba(201,168,76,0.5);
+}
+.input-row input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 13px 14px;
+  color: var(--gold);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+}
+.input-unit {
+  padding: 0 14px;
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+
+/* ─── SAVE BUTTON ──────────────────────────────────────────────── */
+.btn-save {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-save:active { opacity: 0.85; transform: scale(0.99); }
+
+/* ─── TABLE ────────────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+thead th {
+  background: var(--surface2);
+  padding: 10px 12px;
+  text-align: right;
+  color: var(--text3);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody tr { border-top: 1px solid var(--border); }
+tbody tr:nth-child(even) td { background: var(--surface); }
+tbody td {
+  padding: 10px 12px;
+  text-align: right;
+  color: var(--text2);
+  white-space: nowrap;
+}
+tbody td:first-child {
+  text-align: left;
+  color: var(--text);
+  font-weight: 500;
+}
+.fire-achieved td { color: var(--green) !important; }
+.fire-achieved td:first-child { color: var(--green) !important; }
+.current-year td { background: var(--gold-dim) !important; }
+.current-year td { color: var(--gold) !important; }
+
+/* ─── GASTOS ───────────────────────────────────────────────────── */
+.gasto-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.gasto-row:last-child { border-bottom: none; }
+.gasto-info { flex: 1; min-width: 0; }
+.gasto-cat {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gasto-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.gasto-bar-wrap {
+  width: 60px;
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+.gasto-bar { height: 100%; border-radius: 99px; }
+.gasto-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--text);
+  text-align: right;
+  min-width: 64px;
+}
+.gasto-diff {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  text-align: right;
+  min-width: 48px;
+}
+.gasto-diff.over { color: var(--red); }
+.gasto-diff.under { color: var(--green); }
+.gasto-diff.equal { color: var(--text3); }
+
+/* ─── SCENARIO TABLE ───────────────────────────────────────────── */
+.scenario-row {
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  transition: background 0.15s;
+}
+.scenario-row.highlight {
+  background: var(--gold-dim);
+  border-left: 2px solid var(--gold);
+}
+.scenario-tasa {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 44px;
+  color: var(--text);
+}
+.scenario-highlight .scenario-tasa { color: var(--gold); }
+.scenario-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.scenario-label { font-size: 11px; color: var(--text2); }
+.scenario-mini-bar {
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.scenario-mini-fill { height: 100%; border-radius: 99px; background: var(--blue); }
+.scenario-right { text-align: right; }
+.scenario-edad {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--text);
+}
+.scenario-row.highlight .scenario-edad { color: var(--gold); }
+.scenario-anos {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+/* ─── MONTH TABS ───────────────────────────────────────────────── */
+.month-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+.month-tabs::-webkit-scrollbar { display: none; }
+.month-tab {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.month-tab.active {
+  background: var(--gold-dim);
+  border-color: rgba(201,168,76,0.4);
+  color: var(--gold);
+}
+
+/* ─── TOAST ────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #000;
+  padding: 10px 20px;
+  border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─── SPARKLINE ────────────────────────────────────────────────── */
+.sparkline { display: block; width: 100%; height: 60px; }
+
+/* ─── FIRE COUNTER ─────────────────────────────────────────────── */
+.fire-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+}
+.fire-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* ─── AÑOS CARD ────────────────────────────────────────────────── */
+.years-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.year-chip {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+}
+.year-chip-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--text);
+}
+.year-chip-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ─── ANIMATIONS ───────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.4s ease both;
+}
+.fade-up:nth-child(2) { animation-delay: 0.05s; }
+.fade-up:nth-child(3) { animation-delay: 0.1s; }
+.fade-up:nth-child(4) { animation-delay: 0.15s; }
+.fade-up:nth-child(5) { animation-delay: 0.2s; }
+.fade-up:nth-child(6) { animation-delay: 0.25s; }
+
+/* ─── NOISE TEXTURE ────────────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.018;
+  pointer-events: none;
+  z-index: 999;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div>
+      <div id="header-title">🔥 FIRE</div>
+      <div id="header-sub">Financial Independence</div>
+    </div>
+    <div id="header-badge" id="years-badge">— años</div>
+  </div>
+
+  <!-- PAGES -->
+  <div id="pages">
+
+    <!-- ═══ DASHBOARD ══════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+
+      <div class="kpi-grid fade-up">
+        <div class="kpi kpi-gold">
+          <div class="kpi-label">Número FIRE</div>
+          <div class="kpi-value" id="kpi-fire">—</div>
+          <div class="kpi-unit">€ objetivo</div>
+          <div class="kpi-accent-line"></div>
+        </div>
+        <div class="kpi kpi-green">
+          <div class="kpi-label">Ahorro mensual</div>
+          <div class="kpi-value" id="kpi-ahorro">—</div>
+          <div class="kpi-unit">€ / mes</div>
+          <div class="kpi-accent-line"></div>
+        </div>
+        <div class="kpi kpi-blue">
+          <div class="kpi-label">Tasa de ahorro</div>
+          <div class="kpi-value" id="kpi-tasa">—</div>
+          <div class="kpi-unit">% ingresos</div>
+          <div class="kpi-accent-line"></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Patrimonio actual</div>
+          <div class="kpi-value" id="kpi-patrimonio">—</div>
+          <div class="kpi-unit">€ acumulado</div>
+        </div>
+      </div>
+
+      <div class="years-row fade-up">
+        <div class="year-chip">
+          <div class="year-chip-val" id="chip-edad-actual">—</div>
+          <div class="year-chip-lbl">Edad actual</div>
+        </div>
+        <div class="year-chip">
+          <div class="year-chip-val" id="chip-edad-fire">—</div>
+          <div class="year-chip-lbl">Edad FIRE</div>
+        </div>
+        <div class="year-chip">
+          <div class="year-chip-val" id="chip-anos">—</div>
+          <div class="year-chip-lbl">Años restantes</div>
+        </div>
+      </div>
+
+      <div class="card fade-up">
+        <div class="card-title">Progreso hacia el número FIRE</div>
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span class="progress-label">Completado</span>
+            <span class="progress-pct" id="prog-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-amounts">
+            <span class="progress-amount" id="prog-actual">0 €</span>
+            <span class="progress-amount" id="prog-objetivo">0 €</span>
+          </div>
+        </div>
+        <!-- Sparkline proyección -->
+        <div style="margin-top:14px;">
+          <div class="progress-label" style="margin-bottom:8px;">Proyección patrimonio (años)</div>
+          <svg class="sparkline" id="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+
+      <div class="section-title fade-up">Estado del plan</div>
+
+      <div class="fade-up">
+        <div class="alert-row" id="alert-tasa"></div>
+        <div class="alert-row" id="alert-plan"></div>
+        <div class="alert-row" id="alert-patrimonio"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══ PARÁMETROS ═════════════════════════════════════════════ -->
+    <div class="page" id="page-parametros">
+      <div class="section-title">Datos personales</div>
+      <div class="card card-accent fade-up">
+        <div class="input-group">
+          <div class="input-label">Edad actual</div>
+          <div class="input-row"><input type="number" id="p-edad" min="18" max="80" inputmode="numeric"><span class="input-unit">años</span></div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Edad objetivo FIRE</div>
+          <div class="input-row"><input type="number" id="p-edad-fire" min="20" max="90" inputmode="numeric"><span class="input-unit">años</span></div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Ingresos mensuales netos</div>
+          <div class="input-row"><input type="number" id="p-ingresos" inputmode="decimal"><span class="input-unit">€</span></div>
+          <div class="input-note">Después de impuestos</div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Patrimonio acumulado actual</div>
+          <div class="input-row"><input type="number" id="p-patrimonio" inputmode="decimal"><span class="input-unit">€</span></div>
+          <div class="input-note">Total ahorrado e invertido hoy</div>
+        </div>
+      </div>
+
+      <div class="section-title">Supuestos financieros</div>
+      <div class="card card-accent fade-up">
+        <div class="input-group">
+          <div class="input-label">Tasa de rendimiento anual</div>
+          <div class="input-row"><input type="number" id="p-rendimiento" step="0.1" inputmode="decimal"><span class="input-unit">%</span></div>
+          <div class="input-note">Rendimiento esperado de inversiones</div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Tasa de inflación anual</div>
+          <div class="input-row"><input type="number" id="p-inflacion" step="0.1" inputmode="decimal"><span class="input-unit">%</span></div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Tasa de retiro segura (Regla 4%)</div>
+          <div class="input-row"><input type="number" id="p-retiro" step="0.1" inputmode="decimal"><span class="input-unit">%</span></div>
+          <div class="input-note">% anual que retirarás al jubilarte</div>
+        </div>
+      </div>
+
+      <div class="section-title">Gastos mensuales</div>
+      <div class="card fade-up" id="gastos-inputs"></div>
+
+      <button class="btn-save fade-up" onclick="saveParams()">Guardar cambios</button>
+    </div>
+
+    <!-- ═══ PROYECCIÓN ═════════════════════════════════════════════ -->
+    <div class="page" id="page-proyeccion">
+      <div class="card fade-up" style="margin-top:4px;">
+        <div class="card-title">Patrimonio estimado en edad FIRE</div>
+        <div class="fire-number" id="proj-patrimonio-fire">—</div>
+        <div class="fire-label">€ en tu edad objetivo</div>
+      </div>
+      <div class="table-wrap fade-up">
+        <table id="proj-table">
+          <thead>
+            <tr>
+              <th>Edad</th>
+              <th>Ahorro/año</th>
+              <th>Rendim.</th>
+              <th>Patrimonio</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="proj-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ GASTOS ═════════════════════════════════════════════════ -->
+    <div class="page" id="page-gastos">
+      <div class="month-tabs" id="month-tabs"></div>
+      <div class="card fade-up" id="gastos-totales-card">
+        <div class="card-title">Total del mes</div>
+        <div class="fire-number" id="gastos-total-mes" style="font-size:28px;">—</div>
+        <div style="display:flex; justify-content:space-between; margin-top:10px;">
+          <div>
+            <div class="fire-label">Presupuesto</div>
+            <div style="font-family:'DM Mono',monospace; font-size:14px; color:var(--text2); text-align:center;" id="gastos-presupuesto">—</div>
+          </div>
+          <div>
+            <div class="fire-label">Diferencia</div>
+            <div style="font-family:'DM Mono',monospace; font-size:14px; text-align:center;" id="gastos-diferencia">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="card fade-up" id="gastos-detail"></div>
+    </div>
+
+    <!-- ═══ ESCENARIOS ═════════════════════════════════════════════ -->
+    <div class="page" id="page-escenarios">
+      <div class="card fade-up" style="margin-top:4px;">
+        <div class="card-title">Tu situación actual</div>
+        <div style="display:flex; gap:20px;">
+          <div>
+            <div class="kpi-label">Tasa ahorro</div>
+            <div style="font-family:'Playfair Display',serif; font-size:28px; color:var(--gold);" id="esc-tasa-actual">—</div>
+          </div>
+          <div>
+            <div class="kpi-label">Edad FIRE estimada</div>
+            <div style="font-family:'Playfair Display',serif; font-size:28px; color:var(--green);" id="esc-edad-actual">—</div>
+          </div>
+          <div>
+            <div class="kpi-label">Número FIRE</div>
+            <div style="font-family:'DM Mono',monospace; font-size:14px; color:var(--text2); margin-top:8px;" id="esc-numero-fire">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-title">¿Qué pasa si cambias tu tasa de ahorro?</div>
+      <div class="card fade-up" style="padding:0; overflow:hidden;" id="esc-list"></div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="nav">
+    <div class="nav-indicator" id="nav-indicator"></div>
+    <button class="nav-btn active" data-page="dashboard" onclick="navigate('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-page="parametros" onclick="navigate('parametros')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      <span>Datos</span>
+    </button>
+    <button class="nav-btn" data-page="proyeccion" onclick="navigate('proyeccion')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      <span>Proyección</span>
+    </button>
+    <button class="nav-btn" data-page="gastos" onclick="navigate('gastos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
+      <span>Gastos</span>
+    </button>
+    <button class="nav-btn" data-page="escenarios" onclick="navigate('escenarios')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Escenarios</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<div id="toast">✓ Guardado</div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const CATS = [
+  'Vivienda','Servicios','Alimentación','Transporte',
+  'Seguros','Salud','Entretenimiento','Ropa','Educación','Otros'
+];
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+const DEFAULT_PARAMS = {
+  edad: 35, edadFire: 50, ingresos: 2300, patrimonio: 50000,
+  rendimiento: 8, inflacion: 2, retiro: 4,
+  gastos: { Vivienda:295, Servicios:150, Alimentación:400, Transporte:200,
+            Seguros:100, Salud:80, Entretenimiento:150, Ropa:50, Educación:50, Otros:50 }
+};
+
+const DEFAULT_GASTOS_MES = {};
+MESES.forEach(m => {
+  DEFAULT_GASTOS_MES[m] = { Vivienda:295, Servicios:150, Alimentación:400, Transporte:200,
+    Seguros:100, Salud:80, Entretenimiento:150, Ropa:50, Educación:50, Otros:50 };
+});
+
+function loadState() {
+  try {
+    const p = JSON.parse(localStorage.getItem('fire_params')) || {};
+    const g = JSON.parse(localStorage.getItem('fire_gastos')) || {};
+    return {
+      params: { ...DEFAULT_PARAMS, ...p, gastos: { ...DEFAULT_PARAMS.gastos, ...(p.gastos||{}) } },
+      gastosMes: { ...DEFAULT_GASTOS_MES, ...g }
+    };
+  } catch(e) { return { params: { ...DEFAULT_PARAMS }, gastosMes: { ...DEFAULT_GASTOS_MES } }; }
+}
+
+function saveState(params, gastosMes) {
+  localStorage.setItem('fire_params', JSON.stringify(params));
+  if (gastosMes) localStorage.setItem('fire_gastos', JSON.stringify(gastosMes));
+}
+
+let { params, gastosMes } = loadState();
+let currentPage = 'dashboard';
+let currentMonth = MESES[new Date().getMonth()];
+
+// ─── CALCULATIONS ──────────────────────────────────────────────────────────
+function calc(p) {
+  const totalGastosMes = Object.values(p.gastos).reduce((a,b)=>a+b,0);
+  const totalGastosAnio = totalGastosMes * 12;
+  const numeroFire = totalGastosAnio / (p.retiro / 100);
+  const ahorroMensual = p.ingresos - totalGastosMes;
+  const tasaAhorro = p.ingresos > 0 ? ahorroMensual / p.ingresos : 0;
+  const r = p.rendimiento / 100;
+  const anosRestantes = p.edadFire - p.edad;
+
+  // Proyección año a año
+  const proyeccion = [];
+  let pat = p.patrimonio;
+  for (let i = 0; i <= 40; i++) {
+    const edad = p.edad + i;
+    const ahorroAnio = ahorroMensual * 12;
+    const rendimiento = (pat + ahorroAnio / 2) * r;
+    const patFinal = pat + ahorroAnio + rendimiento;
+    const progreso = Math.min(patFinal / numeroFire, 9.99);
+    proyeccion.push({ año: i, edad, ahorroAnio, rendimiento, patrimonio: patFinal, progreso });
+    pat = patFinal;
+  }
+
+  const patrimonioEnFire = proyeccion.find(x => x.edad === p.edadFire)?.patrimonio || 0;
+  const progresActual = p.patrimonio / numeroFire;
+
+  return { totalGastosMes, totalGastosAnio, numeroFire, ahorroMensual, tasaAhorro,
+           proyeccion, patrimonioEnFire, progresActual, anosRestantes };
+}
+
+// NPER equivalente
+function nper(r, pmt, pv, fv) {
+  if (r === 0) return (fv - pv) / pmt;
+  return Math.log((pmt - fv * r) / (pmt + pv * r)) / Math.log(1 + r);
+}
+
+// ─── FORMATTERS ────────────────────────────────────────────────────────────
+const fmt = {
+  eur: n => n >= 1e6 ? (n/1e6).toFixed(2)+'M €' : n >= 1000 ? Math.round(n).toLocaleString('es')+'€' : Math.round(n)+'€',
+  eurShort: n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'k' : Math.round(n).toString(),
+  pct: n => (n*100).toFixed(1)+'%',
+  num: n => Math.round(n).toLocaleString('es'),
+};
+
+// ─── NAVIGATION ────────────────────────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  currentPage = page;
+  updateIndicator();
+
+  // Animate children
+  const children = document.querySelectorAll('#page-'+page+' .fade-up');
+  children.forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; });
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'proyeccion') renderProyeccion();
+  if (page === 'gastos') renderGastos();
+  if (page === 'escenarios') renderEscenarios();
+  if (page === 'parametros') renderParametros();
+}
+
+function updateIndicator() {
+  const btn = document.querySelector(`[data-page="${currentPage}"]`);
+  const nav = document.getElementById('nav');
+  const ind = document.getElementById('nav-indicator');
+  const rect = btn.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+  ind.style.left = (rect.left - navRect.left) + 'px';
+  ind.style.width = rect.width + 'px';
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const c = calc(params);
+
+  document.getElementById('kpi-fire').textContent = fmt.eurShort(c.numeroFire);
+  document.getElementById('kpi-ahorro').textContent = fmt.eurShort(c.ahorroMensual);
+  document.getElementById('kpi-tasa').textContent = (c.tasaAhorro*100).toFixed(0);
+  document.getElementById('kpi-patrimonio').textContent = fmt.eurShort(params.patrimonio);
+  document.getElementById('chip-edad-actual').textContent = params.edad;
+  document.getElementById('chip-edad-fire').textContent = params.edadFire;
+  document.getElementById('chip-anos').textContent = c.anosRestantes;
+  document.getElementById('header-badge').textContent = c.anosRestantes + ' años';
+
+  const pct = Math.min(c.progresActual * 100, 100);
+  document.getElementById('prog-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-actual').textContent = fmt.eur(params.patrimonio);
+  document.getElementById('prog-objetivo').textContent = fmt.eur(c.numeroFire);
+
+  // Sparkline
+  drawSparkline(c.proyeccion, c.numeroFire);
+
+  // Alerts
+  const tasa = c.tasaAhorro;
+  document.getElementById('alert-tasa').innerHTML =
+    tasa >= 0.5 ? `<span class="alert-icon">✅</span><div class="alert-text"><strong>Tasa de ahorro excelente</strong> — ${fmt.pct(tasa)} es muy sólido para FIRE.</div>` :
+    tasa >= 0.3 ? `<span class="alert-icon">⚠️</span><div class="alert-text"><strong>Tasa de ahorro buena</strong> — ${fmt.pct(tasa)}. Intenta superar el 40%.</div>` :
+    tasa >= 0.15 ? `<span class="alert-icon">🔶</span><div class="alert-text"><strong>Tasa de ahorro mejorable</strong> — ${fmt.pct(tasa)}. Revisa tus gastos.</div>` :
+    `<span class="alert-icon">❌</span><div class="alert-text"><strong>Tasa de ahorro baja</strong> — ${fmt.pct(tasa)}. El plan FIRE necesita ajustes.</div>`;
+
+  document.getElementById('alert-plan').innerHTML =
+    c.anosRestantes > 5 ? `<span class="alert-icon">✅</span><div class="alert-text"><strong>Plan FIRE viable</strong> — tienes ${c.anosRestantes} años de margen.</div>` :
+    `<span class="alert-icon">⚠️</span><div class="alert-text"><strong>Margen ajustado</strong> — ${c.anosRestantes} años. Considera ajustar parámetros.</div>`;
+
+  const alcanza = c.patrimonioEnFire >= c.numeroFire;
+  document.getElementById('alert-patrimonio').innerHTML =
+    alcanza ? `<span class="alert-icon">✅</span><div class="alert-text"><strong>Alcanzarás el número FIRE</strong> — proyectado ${fmt.eur(c.patrimonioEnFire)} a los ${params.edadFire} años.</div>` :
+    `<span class="alert-icon">❌</span><div class="alert-text"><strong>Faltarán ${fmt.eur(c.numeroFire - c.patrimonioEnFire)}</strong> — aumenta ahorro o rendimiento.</div>`;
+}
+
+function drawSparkline(proyeccion, numeroFire) {
+  const svg = document.getElementById('sparkline');
+  const data = proyeccion.slice(0, Math.min(30, proyeccion.length));
+  const max = Math.max(...data.map(d=>d.patrimonio), numeroFire * 1.1);
+  const min = Math.min(...data.map(d=>d.patrimonio));
+  const W = 300, H = 60, PAD = 4;
+
+  const x = i => PAD + (i / (data.length-1)) * (W - PAD*2);
+  const y = v => H - PAD - ((v - min) / (max - min)) * (H - PAD*2);
+
+  // Path patrimonio
+  const pts = data.map((d,i) => `${x(i)},${y(d.patrimonio)}`).join(' L ');
+  // Fire line Y
+  const fireY = y(numeroFire);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="M ${data.map((d,i)=>`${x(i)},${y(d.patrimonio)}`).join(' L ')} L ${x(data.length-1)},${H} L ${x(0)},${H} Z"
+          fill="url(#sg)"/>
+    <path d="M ${pts}" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${fireY > PAD && fireY < H-PAD ? `<line x1="${PAD}" y1="${fireY}" x2="${W-PAD}" y2="${fireY}" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+    <text x="${W-PAD}" y="${fireY-3}" text-anchor="end" fill="#22c55e" font-size="8" font-family="DM Mono,monospace">FIRE</text>` : ''}
+  `;
+}
+
+// ─── PARÁMETROS ────────────────────────────────────────────────────────────
+function renderParametros() {
+  document.getElementById('p-edad').value = params.edad;
+  document.getElementById('p-edad-fire').value = params.edadFire;
+  document.getElementById('p-ingresos').value = params.ingresos;
+  document.getElementById('p-patrimonio').value = params.patrimonio;
+  document.getElementById('p-rendimiento').value = params.rendimiento;
+  document.getElementById('p-inflacion').value = params.inflacion;
+  document.getElementById('p-retiro').value = params.retiro;
+
+  const cont = document.getElementById('gastos-inputs');
+  cont.innerHTML = '';
+  CATS.forEach(cat => {
+    const g = document.createElement('div');
+    g.className = 'input-group';
+    g.innerHTML = `
+      <div class="input-label">${cat}</div>
+      <div class="input-row">
+        <input type="number" id="g-${cat}" inputmode="decimal" value="${params.gastos[cat]||0}">
+        <span class="input-unit">€</span>
+      </div>`;
+    cont.appendChild(g);
+  });
+}
+
+function saveParams() {
+  params.edad = +document.getElementById('p-edad').value || params.edad;
+  params.edadFire = +document.getElementById('p-edad-fire').value || params.edadFire;
+  params.ingresos = +document.getElementById('p-ingresos').value || params.ingresos;
+  params.patrimonio = +document.getElementById('p-patrimonio').value || params.patrimonio;
+  params.rendimiento = +document.getElementById('p-rendimiento').value || params.rendimiento;
+  params.inflacion = +document.getElementById('p-inflacion').value || params.inflacion;
+  params.retiro = +document.getElementById('p-retiro').value || params.retiro;
+  CATS.forEach(cat => {
+    const v = +document.getElementById('g-'+cat)?.value;
+    if (!isNaN(v)) params.gastos[cat] = v;
+  });
+  saveState(params, gastosMes);
+  showToast('✓ Guardado');
+}
+
+// ─── PROYECCIÓN ────────────────────────────────────────────────────────────
+function renderProyeccion() {
+  const c = calc(params);
+  document.getElementById('proj-patrimonio-fire').textContent = fmt.eur(c.patrimonioEnFire);
+
+  const tbody = document.getElementById('proj-tbody');
+  tbody.innerHTML = '';
+  c.proyeccion.slice(0, 41).forEach(row => {
+    const tr = document.createElement('tr');
+    const isFireAge = row.edad === params.edadFire;
+    const isCurrent = row.edad === params.edad;
+    const fireAchieved = row.patrimonio >= c.numeroFire;
+    if (isCurrent) tr.classList.add('current-year');
+    else if (fireAchieved) tr.classList.add('fire-achieved');
+    tr.innerHTML = `
+      <td>${row.edad}${isFireAge?' 🔥':''}</td>
+      <td>${fmt.eurShort(row.ahorroAnio)}</td>
+      <td>${fmt.eurShort(row.rendimiento)}</td>
+      <td>${fmt.eurShort(row.patrimonio)}</td>
+      <td>${(row.progreso*100).toFixed(0)}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── GASTOS ────────────────────────────────────────────────────────────────
+function renderGastos() {
+  // Month tabs
+  const tabs = document.getElementById('month-tabs');
+  tabs.innerHTML = '';
+  MESES.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'month-tab' + (m === currentMonth ? ' active' : '');
+    btn.textContent = m;
+    btn.onclick = () => { currentMonth = m; renderGastos(); };
+    tabs.appendChild(btn);
+  });
+
+  const mes = gastosMes[currentMonth] || {};
+  const presupuesto = params.gastos;
+  const totalReal = CATS.reduce((a,c) => a + (mes[c]||presupuesto[c]||0), 0);
+  const totalPres = CATS.reduce((a,c) => a + (presupuesto[c]||0), 0);
+  const diff = totalPres - totalReal;
+
+  document.getElementById('gastos-total-mes').textContent = fmt.eur(totalReal);
+  document.getElementById('gastos-presupuesto').textContent = fmt.eur(totalPres);
+  const diffEl = document.getElementById('gastos-diferencia');
+  diffEl.textContent = (diff >= 0 ? '+' : '') + fmt.eur(Math.abs(diff));
+  diffEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const detail = document.getElementById('gastos-detail');
+  detail.innerHTML = '<div class="card-title">Categorías</div>';
+
+  CATS.forEach(cat => {
+    const real = mes[cat] ?? presupuesto[cat] ?? 0;
+    const pres = presupuesto[cat] || 1;
+    const pct = Math.min(real / Math.max(totalReal, 1), 1);
+    const barColor = real > pres ? 'var(--red)' : real > pres * 0.9 ? 'var(--amber)' : 'var(--green)';
+    const diffCat = pres - real;
+
+    const row = document.createElement('div');
+    row.className = 'gasto-row';
+    row.innerHTML = `
+      <div class="gasto-info">
+        <div class="gasto-cat">${cat}</div>
+        <div class="gasto-sub">Pres: ${fmt.eur(pres)}</div>
+        <div class="gasto-bar-wrap"><div class="gasto-bar" style="width:${pct*100}%;background:${barColor}"></div></div>
+      </div>
+      <div>
+        <div class="gasto-amount" contenteditable="true" 
+             data-cat="${cat}"
+             onblur="updateGasto('${cat}', this.textContent)"
+             style="outline:none; border-bottom:1px solid var(--border); min-width:64px;">${real}</div>
+      </div>
+      <div class="gasto-diff ${diffCat>0?'under':diffCat<0?'over':'equal'}">${diffCat>=0?'+':''}${fmt.eurShort(diffCat)}</div>
+    `;
+    detail.appendChild(row);
+  });
+}
+
+function updateGasto(cat, val) {
+  const num = parseFloat(val.replace(/[^0-9.]/g,''));
+  if (!isNaN(num)) {
+    if (!gastosMes[currentMonth]) gastosMes[currentMonth] = { ...params.gastos };
+    gastosMes[currentMonth][cat] = num;
+    saveState(params, gastosMes);
+    renderGastos();
+  }
+}
+
+// ─── ESCENARIOS ────────────────────────────────────────────────────────────
+function renderEscenarios() {
+  const c = calc(params);
+  document.getElementById('esc-tasa-actual').textContent = fmt.pct(c.tasaAhorro);
+  document.getElementById('esc-numero-fire').textContent = fmt.eur(c.numeroFire);
+
+  // Calcular edad FIRE actual
+  const r = params.rendimiento / 100;
+  const ahorroAct = c.ahorroMensual * 12;
+  const anosActual = ahorroAct > 0 ? nper(r, ahorroAct, -params.patrimonio, c.numeroFire) : 999;
+  const edadFireAct = Math.round(params.edad + anosActual);
+  document.getElementById('esc-edad-actual').textContent = edadFireAct > 100 ? '>100' : edadFireAct + ' años';
+
+  const tasas = [0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70];
+  const list = document.getElementById('esc-list');
+  list.innerHTML = '';
+
+  const maxAnos = Math.max(...tasas.map(t => {
+    const ahorro = t * params.ingresos * 12;
+    const n = ahorro > 0 ? nper(r, ahorro, -params.patrimonio, c.numeroFire) : 999;
+    return Math.min(n, 80);
+  }));
+
+  tasas.forEach(tasa => {
+    const ahorro = tasa * params.ingresos * 12;
+    const anos = ahorro > 0 ? nper(r, ahorro, -params.patrimonio, c.numeroFire) : 999;
+    const edadJubilacion = Math.round(params.edad + anos);
+    const isCurrent = Math.abs(tasa - c.tasaAhorro) < 0.025;
+    const barPct = Math.min(anos / maxAnos, 1);
+
+    const row = document.createElement('div');
+    row.className = 'scenario-row' + (isCurrent ? ' highlight' : '');
+    row.innerHTML = `
+      <div class="scenario-tasa">${Math.round(tasa*100)}%</div>
+      <div class="scenario-bars">
+        <div class="scenario-label">${fmt.eur(tasa*params.ingresos)}/mes · ${anos < 80 ? Math.round(anos)+' años' : '> 80 años'}</div>
+        <div class="scenario-mini-bar"><div class="scenario-mini-fill" style="width:${(1-barPct)*100}%;background:${edadJubilacion<60?'var(--green)':edadJubilacion<70?'var(--amber)':'var(--red)'}"></div></div>
+      </div>
+      <div class="scenario-right">
+        <div class="scenario-edad">${edadJubilacion > 100 ? '+100' : edadJubilacion}</div>
+        <div class="scenario-anos">años</div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  renderDashboard();
+  renderParametros();
+  updateIndicator();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+});
+window.addEventListener('resize', updateIndicator);
+</script>
+</body>
+</html>
